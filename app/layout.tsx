@@ -1,5 +1,6 @@
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+
+// import Header from '@/components/Header';
+// import Footer from '@/components/Footer';
 
 // This remains a Server Component (no 'use client')
 export default function RootLayout({
@@ -10,9 +11,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="bg-white dark:bg-gray-900">
-        <Header />
+        {/* <Header /> */}
         <main>{children}</main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

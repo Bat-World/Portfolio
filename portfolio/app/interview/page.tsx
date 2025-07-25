@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from "react";
 
 type Task = {
   id: string;
@@ -10,22 +10,33 @@ type Task = {
 
 const Interview = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
+
+  useEffect(() => {
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const handleAddTask = () => {
     if (!input.trim()) return;
 
     const newTask: Task = {
-      id: Date.now().toString(), 
+      id: Date.now().toString(),
       title: input.trim(),
       completed: false,
     };
 
     setTasks((prev) => [...prev, newTask]);
-    setInput('');
+    setInput("");
   };
 
-  const toggleTaskCompleted = (id: string) => {
+  const completeTask = (id: string) => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -62,26 +73,24 @@ const Interview = () => {
           <li
             key={task.id}
             className={`flex items-center justify-between border p-2 rounded ${
-              task.completed ? 'bg-green-100' : ''
+              task.completed ? "bg-green-100" : ""
             }`}
           >
-            <span
-              onClick={() => toggleTaskCompleted(task.id)}
-              className={`cursor-pointer ${
-                task.completed ? 'line-through text-gray-500' : ''
-              }`}
-            >
-              {task.title}
-            </span>
+            <input type="checkbox" onChange={() => completeTask(task.id)} />
+            <span>{task.title}</span>
             <button
+              className="text-red-500"
               onClick={() => deleteTask(task.id)}
-              className="text-red-500 hover:text-red-700"
             >
-              ✕
+              delete
             </button>
           </li>
         ))}
       </ul>
+      <p>
+        {tasks.length} tasks total, {tasks.filter((t) => t.completed).length}{" "}
+        completed
+      </p>
     </div>
   );
 };

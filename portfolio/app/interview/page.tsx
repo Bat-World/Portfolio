@@ -11,6 +11,7 @@ type Task = {
 const Interview = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [input, setInput] = useState("");
+  const [filter, setFilter] = useState<"all" | "completed" | "active">("all");
 
   useEffect(() => {
     const storedTasks = localStorage.getItem("tasks");
@@ -48,6 +49,12 @@ const Interview = () => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "active") return !task.completed;
+    if (filter === "completed") return task.completed;
+    return true;
+  });
+
   return (
     <div className="p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
@@ -67,9 +74,13 @@ const Interview = () => {
           Add
         </button>
       </div>
-
+      <div className="space-x-4 my-4">
+        <button onClick={() => setFilter("all")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "all" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>All</button>
+        <button onClick={() => setFilter("active")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "active" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>Active</button>
+        <button onClick={() => setFilter("completed")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "completed" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>Completed</button>
+      </div>
       <ul className="space-y-2">
-        {tasks.map((task) => (
+        {filteredTasks.map((task) => (
           <li
             key={task.id}
             className={`flex items-center justify-between border p-2 rounded ${

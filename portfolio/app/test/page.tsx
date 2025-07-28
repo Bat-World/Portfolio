@@ -1,10 +1,4 @@
-// add task
-// make task complete when check the box
-// delete task
-// list of tasks
-
 "use client";
-
 
 import { useState } from "react";
 
@@ -17,11 +11,10 @@ type Task = {
 const ToDo = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [input, setInput] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
-  const handleAddTask = () => {
-    if (!input.trim()) return;
-
-    const newTask: Task = {
+  const hadnleAddTask = () => {
+    const newTask = {
       id: Date.now().toString(),
       name: input,
       completed: false,
@@ -31,7 +24,7 @@ const ToDo = () => {
     setInput("");
   };
 
-  const completeTask = (id: string) => {
+  const hadnleCompleteTask = (id: string) => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -39,38 +32,55 @@ const ToDo = () => {
     );
   };
 
-  const deleteTask = (id: string) => {
+  const handleDeleteTask = (id: string) => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "active") return !task.completed;
+    if (filter === "completed") return task.completed;
+    return true;
+  });
+
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="add task"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-      />
-      <button onClick={handleAddTask}>add task</button>
-      <ul>
-        {tasks?.map((task) => (
-          <li key={task.id}>
-            <input type="checkbox" onChange={() => completeTask(task.id)} />
-            <span
-              className={` text-white  ${task.completed ? "line-through" : ""}`}
-            >
-              {task.name}
-            </span>
-            <button
-              className="text-red-500"
-              onClick={() => deleteTask(task.id)}
-            >
-              delete
-            </button>
-          </li>
-        ))}
-      </ul>
-      <p>{tasks.length} tasks total, {tasks.filter((t) => t.completed).length} completed.</p>
+    <div className="flex justify-center items-center">
+      <div>
+        <input
+          type="text"
+          placeholder="add task"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button onClick={hadnleAddTask}>add task</button>
+        <div className="space-x-4 my-4">
+          <button onClick={() => setFilter("all")}>All</button>
+          <button onClick={() => setFilter("active")}>Active</button>
+          <button onClick={() => setFilter("completed")}>Completed</button>
+        </div>
+        <ul>
+          {filteredTasks.map((task) => (
+            <li>
+              <input
+                type="checkbox"
+                onChange={() => hadnleCompleteTask(task.id)}
+              />
+              <span
+                className={`text-white ${
+                  task.completed ? "line-through" : "text-white"
+                }`}
+              >
+                {task.name}
+              </span>
+              <button
+                className="text-red-500 cursor-pointer mr-6"
+                onClick={() => handleDeleteTask(task.id)}
+              >
+                delete task
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

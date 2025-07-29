@@ -1,109 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { div, p } from "framer-motion/client";
+import { useState, useEffect } from "react";
 
-type Task = {
-  id: string;
-  title: string;
-  completed: boolean;
-};
+const FlipGame = () => {
+  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
+  const [matchedIndexes, setMatchedIndexes] = useState<number[]>([]);
+  const [isFinished, setIsFinished] = useState(false)
 
-const Interview = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [input, setInput] = useState("");
-  const [filter, setFilter] = useState<"all" | "completed" | "active">("all");
+  const emojis = ["🐶", "🐱", "🦁", "🐵", "🦊", "🐯", "🦄", "🐸"];
+  const emojiPairs = [...emojis, ...emojis];
+
+  const handleFlip = (index: number) => {
+    if (flippedIndexes.includes(index)) return;
+    if (flippedIndexes.length === 2) return;
+    setFlippedIndexes((prev) => [...prev, index]);
+  };
 
   useEffect(() => {
-    const storedTasks = localStorage.getItem("tasks");
-    if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
+    if (flippedIndexes.length === 2) {
+      const [first, second] = flippedIndexes;
+      const firstEmoji = emojiPairs[first];
+      const secondEmoji = emojiPairs[second];
+
+      if (firstEmoji === secondEmoji) {
+        setTimeout(() => {
+          setMatchedIndexes((prev) => [...prev, first, second]);
+          setFlippedIndexes([]);
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          setFlippedIndexes([]);
+        }, 1000);
+      }
+      if(matchedIndexes.length === emojiPairs.length){
+         alert("🎉 Game is over!");
+        setIsFinished(true);
+      }
     }
-  }, []);
+  }, [flippedIndexes]);
+
 
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  if (matchedIndexes.length === emojiPairs.length) {
+    alert("🎉 Game is over!");
+    setIsFinished(true);
+  }
+}, [matchedIndexes]);
 
-  const handleAddTask = () => {
-    if (!input.trim()) return;
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: input.trim(),
-      completed: false,
-    };
-
-    setTasks((prev) => [...prev, newTask]);
-    setInput("");
-  };
-
-  const completeTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-  };
-
-  const filteredTasks = tasks.filter((task) => {
-    if (filter === "active") return !task.completed;
-    if (filter === "completed") return task.completed;
-    return true;
-  });
+  const handleRestart = () => {
+    setMatchedIndexes([]);
+    setFlippedIndexes([]);
+    setIsFinished(false);
+  }
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
-
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Add a new task"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="border rounded p-2 flex-1"
-        />
-        <button
-          onClick={handleAddTask}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add
-        </button>
-      </div>
-      <div className="space-x-4 my-4">
-        <button onClick={() => setFilter("all")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "all" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>All</button>
-        <button onClick={() => setFilter("active")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "active" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>Active</button>
-        <button onClick={() => setFilter("completed")} className={`px-3 py-1 rounded cursor-pointer ${ filter === "completed" ? 'bg-blue-500' : 'bg-gray-200 text-black'}`}>Completed</button>
-      </div>
-      <ul className="space-y-2">
-        {filteredTasks.map((task) => (
-          <li
-            key={task.id}
-            className={`flex items-center justify-between border p-2 rounded ${
-              task.completed ? "bg-green-100" : ""
-            }`}
+    <div className="flex justify-center">
+      <div className="grid grid-cols-4 gap-4">
+        {emojiPairs.map((emoji, index) => (
+          <div
+            key={index}
+            onClick={() => handleFlip(index)}
+            className="w-16 h-16 bg-blue-300 rounded-md flex items-center justify-center text-2xl cursor-pointer select-none"
           >
-            <input type="checkbox" onChange={() => completeTask(task.id)} />
-            <span>{task.title}</span>
-            <button
-              className="text-red-500"
-              onClick={() => deleteTask(task.id)}
-            >
-              delete
-            </button>
-          </li>
+            {flippedIndexes.includes(index) || matchedIndexes.includes(index)
+              ? emoji
+              : ""}
+          </div>
         ))}
-      </ul>
-      <p>
-        {tasks.length} tasks total, {tasks.filter((t) => t.completed).length}{" "}
-        completed
-      </p>
+      </div>
+      <button onClick={handleRestart} className="cursor pointer">{isFinished ? "play again" : "restart"}</button>
     </div>
   );
 };
 
-export default Interview;
+export default FlipGame;

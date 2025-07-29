@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+import UserList from "../../components/UserList";
 
 type Task = {
   id: string;
@@ -8,23 +10,28 @@ type Task = {
   completed: boolean;
 };
 
+type User = {
+  id: number;
+  name: string;
+  email: string;
+};
 const ToDo = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [input, setInput] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [users, setUsers] = useState<User[]>([]);
 
-  const hadnleAddTask = () => {
+  const handleAddTask = () => {
     const newTask = {
       id: Date.now().toString(),
       name: input,
       completed: false,
     };
-
     setTasks((prev) => [...prev, newTask]);
     setInput("");
   };
 
-  const hadnleCompleteTask = (id: string) => {
+  const handleCompleteTask = (id: string) => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -42,45 +49,78 @@ const ToDo = () => {
     return true;
   });
 
+  const getUsers = async () => {
+    const data = await fetch("https://jsonplaceholder.typicode.com/users");
+    const res = await data.json();
+    setUsers(res);
+  };
+
+  useEffect(() => {
+    getUsers();
+    const storedTasks = localStorage.getItem("tasks");
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
   return (
-    <div className="flex justify-center items-center">
+    <div className="">
+      <input
+        type="text"
+        value={input}
+        placeholder="add task"
+        onChange={(e) => setInput(e.target.value)}
+      />
+      <button onClick={handleAddTask} className="pointer-cursor">
+        create task
+      </button>
       <div>
-        <input
-          type="text"
-          placeholder="add task"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button onClick={hadnleAddTask}>add task</button>
-        <div className="space-x-4 my-4">
-          <button onClick={() => setFilter("all")}>All</button>
-          <button onClick={() => setFilter("active")}>Active</button>
-          <button onClick={() => setFilter("completed")}>Completed</button>
-        </div>
-        <ul>
-          {filteredTasks.map((task) => (
-            <li>
-              <input
-                type="checkbox"
-                onChange={() => hadnleCompleteTask(task.id)}
-              />
-              <span
-                className={`text-white ${
-                  task.completed ? "line-through" : "text-white"
-                }`}
-              >
-                {task.name}
-              </span>
-              <button
-                className="text-red-500 cursor-pointer mr-6"
-                onClick={() => handleDeleteTask(task.id)}
-              >
-                delete task
-              </button>
-            </li>
-          ))}
-        </ul>
+        <button onClick={() => setFilter("all")} className="cursor-pointer m-4">
+          All
+        </button>
+        <button
+          onClick={() => setFilter("active")}
+          className="cursor-pointer m-4"
+        >
+          Active
+        </button>
+        <button
+          onClick={() => setFilter("completed")}
+          className="cursor-pointer m-4"
+        >
+          Completed
+        </button>
       </div>
+      <ul>
+        {filteredTasks.map((task) => (
+          <li key={task.id}>
+            <input
+              type="checkbox"
+              onChange={() => handleCompleteTask(task.id)}
+            />
+            <span
+              className={`text-white ${task.completed ? "line-through" : ""}`}
+            >
+              {task.name}
+            </span>
+            <button
+              className="text-red-500 cursor-pointer"
+              onClick={() => handleDeleteTask(task.id)}
+            >
+              delete task
+            </button>
+          </li>
+        ))}
+      </ul>
+      <span>
+        {tasks.length} total tasks, {tasks.filter((t) => t.completed).length}{" "}
+        completed
+      </span>
+      <UserList users={users} />
     </div>
   );
 };
